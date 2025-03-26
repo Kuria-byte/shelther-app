@@ -1,6 +1,8 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import { headers } from "next/headers"
+import { AuthProvider } from "@/src/lib/auth-provider"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { UserProvider } from "@/contexts/user-context"
@@ -22,13 +24,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider defaultTheme="light">
-          <UserProvider>{children}</UserProvider>
+          <UserProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </UserProvider>
         </ThemeProvider>
       </body>
     </html>
   )
 }
-
-
 
 import './globals.css'

@@ -25,3 +25,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# ignore test files
+test-post.js
+test-db.js
+test-*.js
+test-connection.js
+test-reend.js
+test-*.js

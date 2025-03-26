@@ -15,7 +15,7 @@ export function SafetySetupScreen() {
   const [contactName, setContactName] = useState("")
   const [contactPhone, setContactPhone] = useState("")
   const [triggerMethod, setTriggerMethod] = useState("shake")
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)       
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

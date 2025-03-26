@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
 interface EmergencyTriggerProps {
@@ -8,55 +8,34 @@ interface EmergencyTriggerProps {
 }
 
 export function EmergencyTrigger({ onActivate }: EmergencyTriggerProps) {
-  const [pressing, setPressing] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
-  const HOLD_DURATION = 2000 // 2 seconds to activate
-
-  // Add a gentle pulsing effect when not pressing
+  const [isActivated, setIsActivated] = useState(false)
   const [isPulsing, setIsPulsing] = useState(true)
 
-  useEffect(() => {
-    // Only pulse when not being pressed
-    if (!pressing) {
-      setIsPulsing(true)
-    } else {
-      setIsPulsing(false)
+  const triggerHapticFeedback = (duration: number) => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(duration);
     }
-  }, [pressing])
-
-  const handlePressStart = () => {
-    setPressing(true)
-    setProgress(0)
-
-    timerRef.current = setInterval(() => {
-      setProgress((prev) => {
-        const newProgress = prev + 100 / (HOLD_DURATION / 100)
-        if (newProgress >= 100) {
-          if (timerRef.current) clearInterval(timerRef.current)
-          onActivate()
-          return 100
-        }
-        return newProgress
-      })
-    }, 100)
   }
 
-  const handlePressEnd = () => {
-    setPressing(false)
-    setProgress(0)
-    if (timerRef.current) {
-      clearInterval(timerRef.current)
-      timerRef.current = null
+  const handleTap = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault(); // Prevent any default behavior
+    console.log('Tap detected'); // Debug log
+
+    if (!isActivated) {
+      console.log('Activating emergency...'); // Debug log
+      setIsActivated(true);
+      setIsPulsing(false);
+      triggerHapticFeedback(400);
+      onActivate();
     }
   }
 
   return (
     <div className="mt-12 mb-8 flex justify-center items-center">
       <div className="relative flex items-center justify-center">
-        {/* Outer pulsing ring - only shows when not pressing */}
+        {/* Outer pulsing ring - only shows when not activated */}
         <AnimatePresence>
-          {isPulsing && (
+          {!isActivated && isPulsing && (
             <motion.div
               className="absolute w-44 h-44 rounded-full bg-[#FF5A5A]/10"
               initial={{ scale: 0.9, opacity: 0.5 }}
@@ -72,62 +51,56 @@ export function EmergencyTrigger({ onActivate }: EmergencyTriggerProps) {
           )}
         </AnimatePresence>
 
-        {/* Animated outer ring */}
+        {/* Main button container */}
         <motion.div
           className={`w-36 h-36 rounded-full ${
-            pressing ? "bg-[#FF5A5A]/20" : "bg-[#FF5A5A]/10"
+            isActivated ? "bg-red-600" : "bg-[#FF5A5A]/10"
           } flex items-center justify-center`}
           animate={{
-            scale: pressing ? 0.95 : 1,
+            scale: isActivated ? 0.95 : 1,
           }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.2 }}
         >
-          {/* Middle ring - gradient */}
-          <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#FF5A5A] to-[#FF8080] flex items-center justify-center">
-            {/* Progress ring */}
-            <svg className="absolute w-28 h-28">
-              <circle
-                cx="56"
-                cy="56"
-                r="54"
-                fill="none"
-                stroke="white"
-                strokeWidth="4"
-                strokeDasharray={`${progress * 3.39} 339`}
-                strokeLinecap="round"
-                transform="rotate(-90 56 56)"
-              />
-            </svg>
-
+          {/* Middle ring */}
+          <div className={`w-28 h-28 rounded-full ${
+            isActivated ? "bg-red-500" : "bg-gradient-to-br from-[#FF5A5A] to-[#FF8080]"
+          } flex items-center justify-center`}>
+            
             {/* Inner button */}
             <motion.button
-              className="w-24 h-24 rounded-full bg-white text-[#FF5A5A] font-bold shadow-lg flex flex-col items-center justify-center focus:outline-none"
-              whileTap={{ scale: 0.95 }}
-              onTouchStart={handlePressStart}
-              onTouchEnd={handlePressEnd}
-              onMouseDown={handlePressStart}
-              onMouseUp={handlePressEnd}
-              onMouseLeave={handlePressEnd}
+              className={`w-24 h-24 rounded-full ${
+                isActivated ? "bg-red-600 text-white" : "bg-white text-[#FF5A5A]"
+              } font-bold shadow-lg flex flex-col items-center justify-center focus:outline-none 
+              active:scale-95 cursor-pointer select-none touch-none`} // Added interactive classes
+              onClick={handleTap}
+              onTouchEnd={handleTap}
+              disabled={isActivated}
               aria-label="Emergency trigger button"
             >
-              <span className="text-xs uppercase tracking-wider">Hold for</span>
-              <span className="text-xs uppercase tracking-wider mt-1">Emergency</span>
+              {isActivated ? (
+                <>
+                  <span className="text-sm uppercase tracking-wider">Emergency</span>
+                  <span className="text-sm uppercase tracking-wider">Active</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xs uppercase tracking-wider">Tap for</span>
+                  <span className="text-xs uppercase tracking-wider mt-1">Emergency</span>
+                </>
+              )}
             </motion.button>
           </div>
         </motion.div>
 
-        {/* Pulsing effect when pressing */}
+        {/* Activation flash effect */}
         <AnimatePresence>
-          {pressing && (
+          {isActivated && (
             <motion.div
-              className="absolute w-44 h-44 rounded-full border-2 border-[#FF5A5A]"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1.1, opacity: 0.5 }}
+              className="absolute w-44 h-44 rounded-full bg-red-500"
+              initial={{ scale: 0.8, opacity: 0.8 }}
+              animate={{ scale: 1.2, opacity: 0 }}
               exit={{ opacity: 0 }}
-              transition={{
-                repeat: Number.POSITIVE_INFINITY,
-                duration: 1.5,
-              }}
+              transition={{ duration: 0.5 }}
             />
           )}
         </AnimatePresence>

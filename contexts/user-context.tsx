@@ -12,9 +12,11 @@ interface UserContextType {
 export type MoodStatus = "safe" | "cautious" | "unsafe"
 
 export interface UserProfile {
-  name: string
+  id: string
+  name: string | null
   email: string
-  phone: string
+  emailVerified: Date | null
+  phone: string | null
   address?: string
   safeDays: number
   nearbyFriends: number
@@ -32,8 +34,10 @@ export interface RecentActivity {
 }
 
 const defaultUser: UserProfile = {
+  id: "default",
   name: "Sandra",
   email: "sandra@gmail.com",
+  emailVerified: null,
   phone: "+254 (766) 123-457",
   safeDays: 24,
   nearbyFriends: 3,
@@ -83,27 +87,37 @@ export function UserProvider({ children }: UserProviderProps) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // In a real app, this would fetch user data from an API
-    // For now, we'll simulate loading the default user
-    const loadUser = () => {
+    const fetchUserData = async () => {
       try {
+        const response = await fetch('/api/user/profile')
+        if (!response.ok) throw new Error('Failed to fetch user data')
+        
+        const userData = await response.json()
+        // Transform the data to match our UserProfile interface
+        const transformedUser: UserProfile = {
+          ...userData,
+          safeDays: userData.safeDays || 0,
+          nearbyFriends: userData.nearbyFriends || 0,
+          moodStatus: userData.moodStatus || "safe",
+          recentCheckIns: userData.recentCheckIns || [],
+          joinedDate: userData.createdAt || new Date().toISOString(),
+        }
+        
+        setUser(transformedUser)
+        localStorage.setItem("userData", JSON.stringify(transformedUser))
+      } catch (error) {
+        console.error("Error loading user data:", error)
+        // Load from localStorage as fallback
         const savedUser = localStorage.getItem("userData")
         if (savedUser) {
           setUser(JSON.parse(savedUser))
-        } else {
-          setUser(defaultUser)
-          localStorage.setItem("userData", JSON.stringify(defaultUser))
         }
-      } catch (error) {
-        console.error("Error loading user data:", error)
-        setUser(defaultUser)
       } finally {
         setIsLoading(false)
       }
     }
 
-    // Simulate API delay
-    setTimeout(loadUser, 500)
+    fetchUserData()
   }, [])
 
   const updateUser = (data: Partial<UserProfile>) => {

@@ -29,7 +29,7 @@ export function EmergencyActivation({ onConfirm, onCancel }: EmergencyActivation
 
   return (
     <div className="fixed inset-0 bg-[#FF5A5A] flex flex-col items-center justify-center p-6 z-50">
-      <button onClick={onCancel} className="absolute top-6 right-6 bg-white/20 rounded-full p-2">
+      <button onClick={onCancel} title="Close Emergency Activation" className="absolute top-6 right-6 bg-white/20 rounded-full p-2">
         <X className="w-6 h-6 text-white" />
       </button>
 
