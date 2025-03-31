@@ -1,10 +1,17 @@
-import { OnboardingProvider } from "@/contexts/onboarding-context"
-import type { ReactNode } from "react"
+"use client"
 
-export default function OnboardingLayout({ children }: { children: ReactNode }) {
+import type React from "react"
+
+import { OnboardingProvider } from "@/contexts/onboarding-context"
+
+export default function OnboardingLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <OnboardingProvider>
-      <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">{children}</div>
+      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-blue-50">{children}</div>
     </OnboardingProvider>
   )
 }
